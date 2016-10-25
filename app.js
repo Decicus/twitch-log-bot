@@ -11,8 +11,22 @@ client.on('message', (channel, user, message, self) => {
     if (self) {
         return;
     }
-    
+
     channel = channel.replace("#", "");
-    
-    // TODO: The rest.
+    let data = {
+        channel: channel,
+        channel_id: user['room-id'],
+        user: {
+            id: user['user-id'],
+            name: user.username,
+            display_name: (user['display_name'] || user.username),
+            type: user['user-type'],
+            color: user.color,
+            badges: user.badges,
+            subscriber: user.subscriber,
+            turbo: user.turbo
+        },
+        message: message,
+        timestamp: user['tmi-sent-ts']
+    };
 });
