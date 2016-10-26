@@ -37,14 +37,18 @@ config.gcloud = {
  * @type {Object}
  */
 config.settings = {
-    // Array of Twitch usernames that are considered 'admins' and can use whisper commands.
-    admins: [],
     // The path to the JSON-file where channels are stored.
     channels: 'channels.json',
     // The name of the "Kind" on Google Cloud Datastore.
     kind: 'twitch-log-bot',
     // The command prefix for the admin commands.
-    prefix: '!'
+    prefix: '!',
+    // Array of Twitch usernames that are considered 'admins' and can use whisper commands.
+    admins: [],
+    // Express-related settings
+    express: {
+        port: 8000
+    }
 };
 
 module.exports = config;

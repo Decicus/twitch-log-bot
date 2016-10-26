@@ -8,6 +8,7 @@ const fs = require('fs');
 const tmi = require('tmi.js');
 
 const client = new tmi.client(config.tmi);
+const web = express();
 
 /**
  * Channels the bot has joined (and will join on start).
@@ -113,9 +114,9 @@ client.on('chat', (channel, user, message, self) => {
     let data = {
         channel: channel,
         channel_id: user['room-id'],
+        username: user.username,
+        user_id: user['user-id'],
         user: {
-            id: user['user-id'],
-            name: user.username,
             display_name: (user['display_name'] || user.username),
             type: user['user-type'],
             color: user.color,
@@ -181,6 +182,56 @@ client.on('whisper', (username, user, message) => {
             cmds[command](username, user, input);
         }
     }
+});
+
+web.get('/', function(req, res) {
+    res.send({
+        message: 'Hello world'
+    });
+});
+
+web.get('/channels', (req, res) => {
+    res.send(channels);
+});
+
+web.get('/messages', (req, res) => {
+    let channel = req.get('channel');
+    let user = (req.get('user') || null);
+    let limit = (parseInt(req.get('limit')) || 25);
+
+    if (!channel) {
+        res.send({
+            error: "No channel specified"
+        });
+        return;
+    }
+
+    let query = datastore.createQuery(settings.kind)
+        .filter('channel', channel)
+        .order('timestamp', {
+            descending: true
+        });
+
+    if (user) {
+        query = query.filter('username', user);
+    }
+
+    datastore.runQuery(query, (err, entities) => {
+        if (err) {
+            // TODO: Handle errors properly
+            res.send({
+                'error': 'An error occurred'
+            });
+        } else {
+            // TODO: Format differently?
+            res.send(entities);
+        }
+    });
+});
+
+let webport = settings.express.port || 8000;
+web.listen(webport, () => {
+    console.log(`Web interface listening on port ${webport}`);
 });
 
 client.connect();
