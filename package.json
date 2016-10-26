@@ -1,7 +1,7 @@
 {
-  "name": "logging-test",
+  "name": "twitch-log-bot",
   "version": "0.1.0",
-  "description": "Test logging with Google Cloud Datastore",
+  "description": "Twitch logging with Google Cloud Datastore",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,7 +9,12 @@
   "author": "Alex Thomassen",
   "license": "ISC",
   "dependencies": {
-    "google-cloud": "^0.43.0",
+    "@google-cloud/datastore": "^0.5.0",
+    "express": "^4.14.0",
     "tmi.js": "^1.1.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Decicus/twitch-log-bot.git"
   }
 }

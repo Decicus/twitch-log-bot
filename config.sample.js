@@ -4,7 +4,7 @@ const config = {};
 
 /**
  * See tmi.js docs for options: https://docs.tmijs.org/v1.1.2/Configuration.html
- * 
+ *
  * @type {Object}
  */
 config.tmi = {
@@ -18,18 +18,33 @@ config.tmi = {
     identity: {
         username: "decicus",
         password: "oauth:KappaHey"
-    },
-    channels: ["#decicus"]
+    }
 };
 
 /**
  * See Google Cloud options: https://googlecloudplatform.github.io/google-cloud-node/#/docs/google-cloud/0.42.2/google-cloud
- * 
+ *
  * @type {Object}
  */
 config.gcloud = {
     projectId: 'grape-spaceship-123',
     keyFilename: '/path/to/key.json'
+};
+
+/**
+ * Miscellaneous settings used by the bot.
+ *
+ * @type {Object}
+ */
+config.settings = {
+    // Array of Twitch usernames that are considered 'admins' and can use whisper commands.
+    admins: [],
+    // The path to the JSON-file where channels are stored.
+    channels: 'channels.json',
+    // The name of the "Kind" on Google Cloud Datastore.
+    kind: 'twitch-log-bot',
+    // The command prefix for the admin commands.
+    prefix: '!'
 };
 
 module.exports = config;
