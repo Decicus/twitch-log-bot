@@ -197,7 +197,7 @@ if (settings.express.enabled) {
 
     web.get('/messages', (req, res) => {
         let channel = req.get('channel');
-        let user = (req.get('user').toLowerCase() || null);
+        let user = (req.get('user').trim() || "");
         let limit = (parseInt(req.get('limit')) || 25);
 
         if (!channel) {
@@ -211,8 +211,8 @@ if (settings.express.enabled) {
             .filter('channel', '=', channel)
             .order('channel');
 
-        if (user) {
-            console.log(user);
+        if (user && user.length > 0) {
+            user = user.toLowerCase();
             query = query.filter('username', '=', user);
         }
 
