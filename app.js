@@ -192,7 +192,9 @@ if (settings.express.enabled) {
     });
 
     web.get('/channels', (req, res) => {
-        res.send(channels);
+        res.send({
+            channels: channels
+        });
     });
 
     web.get('/messages', (req, res) => {
@@ -232,11 +234,12 @@ if (settings.express.enabled) {
                 // TODO: Handle errors properly
                 console.log(err);
                 res.send({
-                    'error': 'An error occurred'
+                    error: 'An error occurred'
                 });
             } else {
-                // TODO: Format differently?
-                res.send(entities);
+                res.send({
+                    messages: entities
+                });
             }
         });
     });
