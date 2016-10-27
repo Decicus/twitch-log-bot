@@ -187,12 +187,14 @@ client.on('whisper', (username, user, message) => {
 if (settings.express.enabled) {
     web.get('/', function(req, res) {
         res.send({
+            success: true,
             message: 'Hello world'
         });
     });
 
     web.get('/channels', (req, res) => {
         res.send({
+            success: true,
             channels: channels
         });
     });
@@ -209,6 +211,7 @@ if (settings.express.enabled) {
 
         if (!channel) {
             res.send({
+                success: false,
                 error: "No channel specified"
             });
             return;
@@ -234,10 +237,12 @@ if (settings.express.enabled) {
                 // TODO: Handle errors properly
                 console.log(err);
                 res.send({
+                    success: false,
                     error: 'An error occurred'
                 });
             } else {
                 res.send({
+                    success: true,
                     messages: entities
                 });
             }
