@@ -199,6 +199,11 @@ if (settings.express.enabled) {
         let channel = req.get('channel');
         let user = (req.get('user').trim() || "");
         let limit = (parseInt(req.get('limit')) || 25);
+        let offset = (parseInt(req.get('offset')) || 0);
+
+        if (limit > 200) {
+            limit = 200;
+        }
 
         if (!channel) {
             res.send({
@@ -209,7 +214,9 @@ if (settings.express.enabled) {
 
         let query = datastore.createQuery(settings.kind)
             .filter('channel', '=', channel)
-            .order('channel');
+            .order('channel')
+            .limit(limit)
+            .offset(offset);
 
         if (user && user.length > 0) {
             user = user.toLowerCase();
