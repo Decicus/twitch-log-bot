@@ -15,7 +15,7 @@ const web = express();
  *
  * @type {Array}
  */
-let channels = JSON.parse(fs.readFileSync(settings.channels, 'utf-8'));
+let channels = [];
 
 /**
  * Loads channels from file
@@ -25,6 +25,9 @@ let channels = JSON.parse(fs.readFileSync(settings.channels, 'utf-8'));
 const loadChannels = () => {
     channels = JSON.parse(fs.readFileSync(settings.channels, 'utf-8'));
 };
+
+// Load channels on startup
+loadChannels();
 
 /**
  * Saves channels to file.
@@ -117,7 +120,7 @@ client.on('chat', (channel, user, message, self) => {
         username: user.username,
         user_id: user['user-id'],
         user: {
-            display_name: (user['display_name'] || user.username),
+            display_name: (user['display-name'] || user.username),
             type: user['user-type'],
             color: user.color,
             badges: user.badges,
@@ -140,10 +143,7 @@ client.on('chat', (channel, user, message, self) => {
 });
 
 client.on('connected', () => {
-    let date = new Date().toUTCString().split(" ");
-    date.shift();
-    date.pop();
-    console.log(`Successfully connected at: ${date.join(" ")} UTC`);
+    console.log(`[${h.now()}] Successfully connected.`);
 
     if (channels.length > 0) {
         // concat channels array to get a new array instance.
@@ -164,7 +164,7 @@ client.on('join', (channel, user, self) => {
         return;
     }
 
-    console.log(`${user} joined ${channel}`);
+    console.log(`[${h.now()}] ${user} joined ${channel}`);
 });
 
 client.on('whisper', (username, user, message) => {
@@ -184,54 +184,60 @@ client.on('whisper', (username, user, message) => {
     }
 });
 
-web.get('/', function(req, res) {
-    res.send({
-        message: 'Hello world'
-    });
-});
-
-web.get('/channels', (req, res) => {
-    res.send(channels);
-});
-
-web.get('/messages', (req, res) => {
-    let channel = req.get('channel');
-    let user = (req.get('user') || null);
-    let limit = (parseInt(req.get('limit')) || 25);
-
-    if (!channel) {
+if (settings.express.enabled) {
+    web.get('/', function(req, res) {
         res.send({
-            error: "No channel specified"
+            message: 'Hello world'
         });
-        return;
-    }
+    });
 
-    let query = datastore.createQuery(settings.kind)
-        .filter('channel', channel)
-        .order('timestamp', {
+    web.get('/channels', (req, res) => {
+        res.send(channels);
+    });
+
+    web.get('/messages', (req, res) => {
+        let channel = req.get('channel');
+        let user = (req.get('user').toLowerCase() || null);
+        let limit = (parseInt(req.get('limit')) || 25);
+
+        if (!channel) {
+            res.send({
+                error: "No channel specified"
+            });
+            return;
+        }
+
+        let query = datastore.createQuery(settings.kind)
+            .filter('channel', '=', channel)
+            .order('channel');
+
+        if (user) {
+            console.log(user);
+            query = query.filter('username', '=', user);
+        }
+
+        query = query.order('timestamp', {
             descending: true
         });
 
-    if (user) {
-        query = query.filter('username', user);
-    }
-
-    datastore.runQuery(query, (err, entities) => {
-        if (err) {
-            // TODO: Handle errors properly
-            res.send({
-                'error': 'An error occurred'
-            });
-        } else {
-            // TODO: Format differently?
-            res.send(entities);
-        }
+        datastore.runQuery(query, (err, entities) => {
+            if (err) {
+                // TODO: Handle errors properly
+                console.log(err);
+                res.send({
+                    'error': 'An error occurred'
+                });
+            } else {
+                // TODO: Format differently?
+                res.send(entities);
+            }
+        });
     });
-});
 
-let webport = settings.express.port || 8000;
-web.listen(webport, () => {
-    console.log(`Web interface listening on port ${webport}`);
-});
+    let webport = settings.express.port || 8000;
+    web.listen(webport, () => {
+        console.log(`Web interface listening on port ${webport}`);
+    });
+}
 
 client.connect();

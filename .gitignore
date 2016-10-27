@@ -1,3 +1,4 @@
 node_modules
 config.js*
 channels.json
+index.yaml

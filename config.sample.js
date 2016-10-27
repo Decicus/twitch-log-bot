@@ -17,6 +17,10 @@ config.tmi = {
     },
     identity: {
         username: "decicus",
+        // The chat OAuth token can be retrieved using several methods.
+        // Here are at least two:
+        // - https://decicus.github.io/twitch-chat-token/
+        // - https://twitchapps.com/tmi/
         password: "oauth:KappaHey"
     }
 };
@@ -47,6 +51,9 @@ config.settings = {
     admins: [],
     // Express-related settings
     express: {
+        // Will not run the express/web server if this is set to 'false'
+        enabled: false,
+        // What port to run the express/web server on
         port: 8000
     }
 };

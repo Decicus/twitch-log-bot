@@ -1,0 +1,14 @@
+indexes:
+
+- kind: twitch-log-bot
+  properties:
+  - name: channel
+  - name: timestamp
+    direction: desc
+
+- kind: twitch-log-bot
+  properties:
+  - name: channel
+  - name: username
+  - name: timestamp
+    direction: desc
