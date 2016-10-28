@@ -5,6 +5,7 @@ const settings = config.settings;
 const datastore = require('@google-cloud/datastore')(config.gcloud);
 const express = require('express');
 const fs = require('fs');
+const swig = require('swig');
 const tmi = require('tmi.js');
 
 const client = new tmi.client(config.tmi);
@@ -23,7 +24,12 @@ let channels = [];
  * @return {Void}
  */
 const loadChannels = () => {
-    channels = JSON.parse(fs.readFileSync(settings.channels, 'utf-8'));
+    try {
+        channels = JSON.parse(fs.readFileSync((settings.channels || __dirname + "/channels.json"), 'utf-8'));
+    } catch (error) {
+        console.log(error);
+        channels = [];
+    }
 };
 
 // Load channels on startup
@@ -35,7 +41,7 @@ loadChannels();
  * @return {Void}
  */
 const saveChannels = () => {
-    fs.writeFile(settings.channels, JSON.stringify(channels, null, 4), (error) => {
+    fs.writeFile((settings.channels || __dirname + "/channels.json"), JSON.stringify(channels, null, 4), (error) => {
         if (error) {
             console.log(error);
         }
@@ -144,8 +150,9 @@ client.on('chat', (channel, user, message, self) => {
 
 client.on('connected', () => {
     console.log(`[${h.now()}] Successfully connected.`);
+    settings.autoconnect = settings.autoconnect || {};
 
-    if (channels.length > 0) {
+    if (channels.length > 0 && settings.autoconnect.enabled !== false) {
         // concat channels array to get a new array instance.
         let temp = channels.concat();
         let queue = setInterval(() => {
@@ -155,7 +162,7 @@ client.on('connected', () => {
             if (temp.length === 0) {
                 clearInterval(queue);
             }
-        }, 1000);
+        }, settings.autoconnect.delay || 1000);
     }
 });
 
@@ -185,28 +192,30 @@ client.on('whisper', (username, user, message) => {
 });
 
 if (settings.express.enabled) {
-    web.get('/', function(req, res) {
-        res.send({
-            success: true,
-            message: 'Hello world'
-        });
+    web.engine('html', swig.renderFile);
+    web.set('view engine', 'html');
+    web.set('views', __dirname + '/views');
+
+    web.get('/', (req, res) => {
+        res.render("home");
     });
 
-    web.get('/channels', (req, res) => {
+    web.get('/api/channels', (req, res) => {
         res.send({
             success: true,
             channels: channels
         });
     });
 
-    web.get('/messages', (req, res) => {
+    web.get('/api/messages', (req, res) => {
         let channel = req.get('channel');
         let user = (req.get('user').trim() || "");
         let limit = (parseInt(req.get('limit')) || 25);
         let offset = (parseInt(req.get('offset')) || 0);
 
-        if (limit > 200) {
-            limit = 200;
+        let max = (settings.queryLimit || 200);
+        if (limit > max) {
+            limit = max;
         }
 
         if (!channel) {
@@ -219,14 +228,16 @@ if (settings.express.enabled) {
 
         let query = datastore.createQuery(settings.kind)
             .filter('channel', '=', channel)
-            .order('channel')
-            .limit(limit)
-            .offset(offset);
+            .order('channel');
 
         if (user && user.length > 0) {
             user = user.toLowerCase();
             query = query.filter('username', '=', user);
         }
+
+        query = query
+            .offset(offset)
+            .limit(limit);
 
         query = query.order('timestamp', {
             descending: true
@@ -246,6 +257,13 @@ if (settings.express.enabled) {
                     messages: entities
                 });
             }
+        });
+    });
+
+    web.get('/api/*', function(req, res) {
+        res.send({
+            success: false,
+            error: '404 not found'
         });
     });
 

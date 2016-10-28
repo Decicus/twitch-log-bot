@@ -47,8 +47,18 @@ config.settings = {
     kind: 'twitch-log-bot',
     // The command prefix for the admin commands.
     prefix: '!',
+    // The maximum amount of chat messages the API should allow you to query.
+    queryLimit: 200,
     // Array of Twitch usernames that are considered 'admins' and can use whisper commands.
     admins: [],
+    // Settings related to when the bot auto-connects to channels on startup.
+    autoconnect: {
+        // If auto-connecting should be enabled
+        enabled: true,
+        // The delay between channel join in MILLISECONDS
+        // Be careful of not putting this _too low_ due to rate-limits on Twitch's servers.
+        delay: 1000
+    },
     // Express-related settings
     express: {
         // Will not run the express/web server if this is set to 'false'
