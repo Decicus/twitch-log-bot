@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.3.0
+- Allows searching for just username.
+- Re-organized the table for messages in a little bit more logical structure.
+
 ## Version 0.2.1
 - Channels are now sorted alphabetically in the web interface's list.
 

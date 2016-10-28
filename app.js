@@ -218,17 +218,20 @@ if (settings.express.enabled) {
             limit = max;
         }
 
-        if (!channel) {
+        if ((!channel || channel.length === 0) && (!user || user.length === 0)) {
             res.send({
                 success: false,
-                error: "No channel specified"
+                error: "No channel or user specified"
             });
             return;
         }
 
-        let query = datastore.createQuery(settings.kind)
-            .filter('channel', '=', channel)
-            .order('channel');
+        let query = datastore.createQuery(settings.kind);
+
+        if (channel && channel.length > 0) {
+            query = query.filter('channel', '=', channel)
+                .order('channel');
+        }
 
         if (user && user.length > 0) {
             user = user.toLowerCase();

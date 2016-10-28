@@ -5,7 +5,7 @@
         <div class="form-group">
             <label for="channel"><i class="fa fa-1x fa-list"></i> Channel:</label>
             <select class="form-control" id="channel" onchange="update();">
-                <option selected="">Select channel</option>
+                <option selected="" value="">Select channel</option>
             </select>
         </div>
 
@@ -19,16 +19,15 @@
             <input type="number" class="form-control" step="1" min="1" value="25" id="limit" onchange="update();">
         </div>
 
-        <div class="alert alert-danger hidden">
-
-        </div>
+        <div class="alert alert-danger hidden"></div>
 
         <table id="messages" class="table table-bordered hidden">
             <thead>
                 <tr>
                     <th>Date &amp; time (UTC):</th>
-                    <th>Message:</th>
+                    <th>Channel:</th>
                     <th>Display name:</th>
+                    <th>Message:</th>
                 </tr>
             </thead>
 
@@ -132,7 +131,7 @@
                             date.pop();
 
                             $('<tr/>')
-                                .html('<th>' + date.join(" ") + '</th><td>' + htmlEntities(md.message) + '</td><td>' + md.user.display_name + '</td>')
+                                .html('<th>' + date.join(" ") + '</th><td>' +  md.channel +'</td><td>' + md.user.display_name + '</td><td>' + htmlEntities(md.message) + '</td>')
                                 .appendTo('tbody', messages);
                         });
                     } else {
