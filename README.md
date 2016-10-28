@@ -1,5 +1,9 @@
-# twitch-log-bot
+# Twitch Log Bot
 Twitch Log Bot is a bot that will join Twitch channels and store chat messages using Google Cloud Datastore.
+
+The web interface is just a basic interface to allow you to see past messages in a channel to see their chat history.  
+It is designed to be simple and only do lookups per-channel (and optionally: per-user).  
+If you want something that has more features, take a look at [CBenni's Logviewer](https://github.com/CBenni/logviewer) which is also hosted at [cbenni.com](https://cbenni.com/).
 
 ## Setup
 - Setup [Google Cloud Datastore](https://console.cloud.google.com/datastore/).
@@ -19,7 +23,7 @@ Twitch Log Bot is a bot that will join Twitch channels and store chat messages u
 - Run the bot using `node app.js`.
 
 ## Changelog
-A changelog can be found here: [CHANGELOG](/CHANGELOG.md)
+Changelog can be found here: [CHANGELOG](/CHANGELOG.md)
 
 ## Commands
 Commands can be found here: [COMMANDS](/COMMANDS.md)
