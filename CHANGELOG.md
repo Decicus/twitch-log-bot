@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.2.1
+- Channels are now sorted alphabetically in the web interface's list.
+
 ## Version 0.2.0
 - Created a frontend that integrates with `/api/*` routes.
 - Add a property in `config.settings` that allows users to enable/disable the auto-connecting to Twitch channels (`true/false`).

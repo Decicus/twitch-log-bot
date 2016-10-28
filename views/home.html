@@ -18,7 +18,7 @@
             <label for="limit"><i class="fa fa-sort-numeric-asc fa-1x"></i> Maximum number of messages:</label>
             <input type="number" class="form-control" step="1" min="1" value="25" id="limit" onchange="update();">
         </div>
-        
+
         <div class="alert alert-danger hidden">
 
         </div>
@@ -152,7 +152,10 @@
         $(document).ready(function () {
             $.getJSON('/api/channels', function (data) {
                 if (data.success) {
-                    $.each(data.channels, function (key, channel) {
+                    var channels = data.channels;
+
+                    channels.sort();
+                    $.each(channels, function (key, channel) {
                         $('#channel').append(
                             $('<option/>')
                                 .val(channel)
