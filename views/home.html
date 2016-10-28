@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block main %}
+    <div class="jumbotron">
+        <div class="form-group">
+            <label for="channel"><i class="fa fa-1x fa-list"></i> Channel:</label>
+            <select class="form-control" id="channel" onchange="update();">
+                <option selected="">Select channel</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="username"><i class="fa fa-1x fa-search"></i> Username:</label>
+            <input type="text" class="form-control" id="username" onchange="update();" />
+        </div>
+
+        <div class="form-group">
+            <label for="limit"><i class="fa fa-sort-numeric-asc fa-1x"></i> Maximum number of messages:</label>
+            <input type="number" class="form-control" step="1" min="1" value="25" id="limit" onchange="update();">
+        </div>
+        
+        <div class="alert alert-danger hidden">
+
+        </div>
+
+        <table id="messages" class="table table-bordered hidden">
+            <thead>
+                <tr>
+                    <th>Date &amp; time (UTC):</th>
+                    <th>Message:</th>
+                    <th>Display name:</th>
+                </tr>
+            </thead>
+
+            <tbody></tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript">
+        /**
+         * HTML-encodes strings
+         *
+         * @param  {String} str The string to encode
+         * @return {String}     The string encoded
+         */
+        function htmlEntities(str)
+        {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        /**
+         * Gets the value from the selector and trims it.
+         *
+         * @param  {String} selector The selector jQuery should look for.
+         * @return {String}          The string value from the selector.
+         */
+        function value(selector)
+        {
+            return $(selector).val().trim();
+        }
+
+        /**
+         * Fills the error box with the specified value.
+         *
+         * @param  {String} error The error to fill in with.
+         * @return {Void}
+         */
+        function error(err)
+        {
+            var element = $('#error');
+            if (element.hasClass('hidden')) {
+                element.removeClass('hidden');
+            }
+
+            element.html(err);
+        }
+
+        /**
+         * Makes sure update() doesn't run a request if one is already running.
+         *
+         * @type {Boolean}
+         */
+        var updating = false;
+
+        /**
+         * Updates the page with messages
+         *
+         * @return {Void}
+         */
+        function update()
+        {
+            if (updating) {
+                return;
+            }
+
+            updating = true;
+            var channel = value('#channel');
+            var username = value('#username');
+            var limit = parseInt(value('#limit'));
+
+            var messages = $('#messages');
+            $('#messages').before('<p class="text-warning" id="loading">Loading...</p>');
+            var loading = $('#loading');
+
+            if (!messages.hasClass('hidden')) {
+                messages.addClass('hidden');
+            }
+
+            var err = $('#error');
+            if (!err.hasClass('hidden')) {
+                err.addClass('hidden');
+            }
+
+            $('tbody tr', messages).remove();
+            $.ajax({
+                url: '/api/messages',
+                headers: {
+                    channel: channel,
+                    user: username,
+                    limit: limit
+                },
+                dataType: "json",
+                success: function (data) {
+                    messages.removeClass('hidden');
+                    if (data.success) {
+                        var msgs = data.messages;
+                        msgs.forEach(function (md) {
+                            var date = new Date(parseInt(md.timestamp)).toUTCString().split(" ");
+                            date.shift();
+                            date.pop();
+
+                            $('<tr/>')
+                                .html('<th>' + date.join(" ") + '</th><td>' + htmlEntities(md.message) + '</td><td>' + md.user.display_name + '</td>')
+                                .appendTo('tbody', messages);
+                        });
+                    } else {
+                        error(data.error);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    error('An error occurred loading messages: ' + status);
+                },
+                complete: function() {
+                    updating = false;
+                    loading.remove();
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            $.getJSON('/api/channels', function (data) {
+                if (data.success) {
+                    $.each(data.channels, function (key, channel) {
+                        $('#channel').append(
+                            $('<option/>')
+                                .val(channel)
+                                .html(channel)
+                        );
+                    });
+                }
+            });
+        });
+    </script>
+{% endblock %}
