@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.3.1
+- Adds a 'Refresh' button to the homepage, so that you can retrieve messages without changing from one channel to another, then back.
+- Error messages now properly work.
+- Added a proper `LICENSE` file to the repository.
+
 ## Version 0.3.0
 - Allows searching for just username.
 - Re-organized the table for messages in a little bit more logical structure.
