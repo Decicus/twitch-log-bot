@@ -26,7 +26,10 @@ If you want something that has more features, take a look at [CBenni's Logviewer
 - Run the bot using `node app.js`, or alternatively use [pm2](http://pm2.keymetrics.io/).
 
 ## Changelog
-Changelog can be found here: [CHANGELOG](/CHANGELOG.md)
+Changelog can be found here: [CHANGELOG](/CHANGELOG.md).
 
 ## Commands
-Commands can be found here: [COMMANDS](/COMMANDS.md)
+Commands can be found here: [COMMANDS](/COMMANDS.md).
+
+## License
+This is licensed under the [MIT License](/LICENSE).
