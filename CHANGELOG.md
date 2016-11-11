@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.4.1
+- Commands `ignore` and `unignore` will now display the correct username that was ignored, instead of the username of the admin that did the command.
+    - This is just a minor fix, as the name saved to the ignore list was correct, but the message sent back to the admin was incorrect.
+
 ## Version 0.4.0
 - Add a per-channel ignore list.
 - Added `ignore` and `unignore` commands for use with the ignore list.

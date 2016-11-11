@@ -134,13 +134,13 @@ cmds['ignore'] = (username, user, input) => {
 
     let list = ignore[channel];
     if (list.indexOf(name) >= 0) {
-        client.whisper(username, `${username} is already ignored in ${channel}`);
+        client.whisper(username, `${name} is already ignored in ${channel}`);
         return;
     }
 
     list.push(name);
     saveIgnore();
-    client.whisper(username, `${username} has been added to the ignore list for ${channel}`);
+    client.whisper(username, `${name} has been added to the ignore list for ${channel}`);
 };
 
 /**
@@ -219,13 +219,13 @@ cmds['unignore'] = (username, user, input) => {
     let list = ignore[channel];
     let index = list.indexOf(name);
     if (index === -1) {
-        client.whisper(username, `${username} isn't ignored in ${channel}`);
+        client.whisper(username, `${name} isn't ignored in ${channel}`);
         return;
     }
 
     list.splice(index, 1);
     saveIgnore();
-    client.whisper(username, `${username} has been removed from the ignore list for ${channel}`);
+    client.whisper(username, `${name} has been removed from the ignore list for ${channel}`);
 };
 
 client.on('chat', (channel, user, message, self) => {
