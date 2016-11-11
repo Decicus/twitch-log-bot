@@ -234,7 +234,7 @@ client.on('chat', (channel, user, message, self) => {
     /**
      * Ignore users in the ignore list.
      */
-    if (ignore[channel].indexOf(user.username) >= 0) {
+    if (ignore[channel] && ignore[channel].indexOf(user.username) >= 0) {
         return;
     }
 
@@ -380,6 +380,7 @@ if (settings.express.enabled) {
             } else {
                 res.send({
                     success: true,
+                    count: entities.length,
                     messages: entities
                 });
             }

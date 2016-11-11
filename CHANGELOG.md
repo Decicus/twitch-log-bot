@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.4.2
+- Fix error when ignore list for channel did not exist.
+- Fix minor error in home view for handling errors.
+- Add a `count` field in the `/api/messages` route.
+
 ## Version 0.4.1
 - Commands `ignore` and `unignore` will now display the correct username that was ignored, instead of the username of the admin that did the command.
     - This is just a minor fix, as the name saved to the ignore list was correct, but the message sent back to the admin was incorrect.
