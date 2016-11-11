@@ -43,6 +43,8 @@ config.gcloud = {
 config.settings = {
     // The path to the JSON-file where channels are stored.
     channels: 'channels.json',
+    // The path to the JSON-file where the ignore list is stored.
+    ignore: 'ignore.json',
     // The name of the "Kind" on Google Cloud Datastore.
     kind: 'twitch-log-bot',
     // The command prefix for the admin commands.

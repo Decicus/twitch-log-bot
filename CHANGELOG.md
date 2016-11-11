@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.4.0
+- Add a per-channel ignore list.
+- Added `ignore` and `unignore` commands for use with the ignore list.
+
 ## Version 0.3.1
 - Adds a 'Refresh' button to the homepage, so that you can retrieve messages without changing from one channel to another, then back.
 - Error messages now properly work.

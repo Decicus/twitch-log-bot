@@ -15,6 +15,8 @@ If you want something that has more features, take a look at [CBenni's Logviewer
     - After that, while being in the directory of this bot, run `gcloud preview datastore create-indexes index.yaml` and it should create the indexes.
 - Copy `channels.sample.json` to `channels.json` and edit it.
     - **It's recommended to at least remove the example channels**.
+- Copy `ignore.sample.json` to `ignore.json`.
+    - If you are familiar with JSON objects, feel free to manually edit it. Otherwise, I recommend using the [admin commands](COMMANDS.md).
 - Run the bot using `node app.js`, or alternatively use [pm2](http://pm2.keymetrics.io/).
 
 ## Updating

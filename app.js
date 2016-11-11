@@ -19,17 +19,55 @@ const web = express();
 let channels = [];
 
 /**
+ * Which users to ignore in channels by the bot.
+ *
+ * @type {Object}
+ */
+let ignore = {};
+
+/**
+ * Reads a file and parses it as JSON.
+ *
+ * @return {Mixed}
+ */
+const readJson = (filename) => {
+    try {
+        return JSON.parse(fs.readFileSync(filename, 'utf-8'));
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+};
+
+
+/**
+ * JSON-encodes the input and writes it to the specified file path.
+ *
+ * @param  {String} filename
+ * @param  {Object|Array} input
+ * @return {Void}
+ */
+const saveJson = (filename, input) => {
+    fs.writeFile(filename, JSON.stringify(input, null, 4), (error) => {
+        if (error) {
+            console.log(error);
+        }
+    });
+};
+
+/**
  * Loads channels from file
  *
  * @return {Void}
  */
 const loadChannels = () => {
-    try {
-        channels = JSON.parse(fs.readFileSync((settings.channels || __dirname + "/channels.json"), 'utf-8'));
-    } catch (error) {
-        console.log(error);
-        channels = [];
+    let read = readJson(settings.channels || __dirname + "/channels.json");
+
+    if (read === false) {
+        return;
     }
+
+    channels = read;
 };
 
 // Load channels on startup
@@ -41,11 +79,34 @@ loadChannels();
  * @return {Void}
  */
 const saveChannels = () => {
-    fs.writeFile((settings.channels || __dirname + "/channels.json"), JSON.stringify(channels, null, 4), (error) => {
-        if (error) {
-            console.log(error);
-        }
-    });
+    saveJson(settings.channels || __dirname + "/channels.json", channels);
+};
+
+/**
+ * Loads the ignore list from file.
+ *
+ * @return {Void}
+ */
+const loadIgnore = () => {
+    let read = readJson(settings.ignore || __dirname + "/ignore.json");
+
+    if (read === false) {
+        return;
+    }
+
+    ignore = read;
+};
+
+// Load ignore list on startup.
+loadIgnore();
+
+/**
+ * Saves the ignore list to file.
+ *
+ * @return {Void}
+ */
+const saveIgnore = () => {
+    saveJson(settings.ignore || __dirname + "/ignore.json", ignore);
 };
 
 /**
@@ -56,7 +117,34 @@ const saveChannels = () => {
 const cmds = {};
 
 /**
- * Attempts to join the channel if it hasn't already been joined, then saves the current list.
+ * Adds a user to the ignore list for the specified channel, then saves the ignore list.
+ */
+cmds['ignore'] = (username, user, input) => {
+    if (!input[0] || !input[1]) {
+        client.whisper(username, 'Both channel and username has to be specified');
+        return;
+    }
+
+    let channel = h.fmtChannel(input[0]);
+    let name = h.fmtChannel(input[1]);
+
+    if (!ignore[channel]) {
+        ignore[channel] = [];
+    }
+
+    let list = ignore[channel];
+    if (list.indexOf(name) >= 0) {
+        client.whisper(username, `${username} is already ignored in ${channel}`);
+        return;
+    }
+
+    list.push(name);
+    saveIgnore();
+    client.whisper(username, `${username} has been added to the ignore list for ${channel}`);
+};
+
+/**
+ * Attempts to join the channel if it hasn't already been joined, then saves the channel list.
  */
 cmds['join'] = (username, user, input) => {
     if (input[0]) {
@@ -112,8 +200,43 @@ cmds['ping'] = (username) => {
     client.whisper(username, "PONG");
 };
 
+/**
+ * Removes a user from the ignore list for the specified channel, then saves the ignore list.
+ */
+cmds['unignore'] = (username, user, input) => {
+    if (!input[0] || !input[1]) {
+        client.whisper(username, 'Both channel and username has to be specified');
+        return;
+    }
+
+    let channel = h.fmtChannel(input[0]);
+    let name = h.fmtChannel(input[1]);
+
+    if (!ignore[channel]) {
+        ignore[channel] = [];
+    }
+
+    let list = ignore[channel];
+    let index = list.indexOf(name);
+    if (index === -1) {
+        client.whisper(username, `${username} isn't ignored in ${channel}`);
+        return;
+    }
+
+    list.splice(index, 1);
+    saveIgnore();
+    client.whisper(username, `${username} has been removed from the ignore list for ${channel}`);
+};
+
 client.on('chat', (channel, user, message, self) => {
     channel = h.fmtChannel(channel);
+
+    /**
+     * Ignore users in the ignore list.
+     */
+    if (ignore[channel].indexOf(user.username) >= 0) {
+        return;
+    }
 
     /**
      * Formats data so we don't log _all_ the junk included in the userstate.
