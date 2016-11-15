@@ -27,6 +27,7 @@
 
         <div class="alert alert-danger hidden" id="error"></div>
 
+        <div class="hidden alert alert-success"><i class="fa fa-comments-o fa-1x"></i> Retrieved <strong id="count"></strong> messages</div>
         <table id="messages" class="table table-bordered hidden">
             <thead>
                 <tr>
@@ -117,6 +118,8 @@
             messages.before('<p class="text-warning" id="loading">Loading...</p>');
             var loading = $('#loading');
             var refresh = $('#refresh');
+            var count = $('#count');
+            var countP = count.parent('div');
 
             if (!messages.hasClass('hidden')) {
                 messages.addClass('hidden');
@@ -133,6 +136,10 @@
                 refresh.addClass('disabled');
             }
 
+            if (!countP.hasClass('hidden')) {
+                countP.addClass('hidden');
+            }
+
             $('.fa', refresh).addClass('fa-spin');
             $.ajax({
                 url: '/api/messages',
@@ -143,7 +150,6 @@
                 },
                 dataType: "json",
                 success: function (data) {
-                    messages.removeClass('hidden');
                     if (data.success) {
                         var msgs = data.messages;
                         msgs.forEach(function (md) {
@@ -155,6 +161,9 @@
                                 .html('<th>' + date.join(" ") + '</th><td>' +  md.channel +'</td><td>' + md.user.display_name + '</td><td>' + htmlEntities(md.message) + '</td>')
                                 .appendTo('tbody', messages);
                         });
+                        messages.removeClass('hidden');
+                        countP.removeClass('hidden');
+                        count.html(data.count);
                     } else {
                         error(data.error);
                     }
