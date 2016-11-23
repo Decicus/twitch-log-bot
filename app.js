@@ -331,10 +331,13 @@ if (settings.express.enabled) {
     });
 
     web.get('/api/messages', (req, res) => {
-        let channel = req.get('channel');
-        let user = (req.get('user').trim() || "");
-        let limit = (parseInt(req.get('limit')) || 25);
-        let offset = (parseInt(req.get('offset')) || 0);
+        let channel = (h.requestValue(req, 'channel') || "");
+        let user = (h.requestValue(req, 'user') || "");
+        user = user.trim();
+        channel = channel.trim();
+        let limit = (parseInt(h.requestValue(req, 'limit')) || 25);
+        let offset = (parseInt(h.requestValue(req, 'offset')) || 0);
+        let plain = (typeof h.requestValue(req, 'plain') !== 'undefined' ? true : false);
 
         let max = (settings.queryLimit || 200);
         if (limit > max) {
@@ -342,9 +345,15 @@ if (settings.express.enabled) {
         }
 
         if ((!channel || channel.length === 0) && (!user || user.length === 0)) {
-            res.send({
+            let message = "No channel or user specified";
+            if (plain) {
+                h.response(res, message);
+                return;
+            }
+
+            h.response(res, {
                 success: false,
-                error: "No channel or user specified"
+                error: message
             });
             return;
         }
@@ -369,21 +378,45 @@ if (settings.express.enabled) {
             descending: true
         });
 
-        datastore.runQuery(query, (err, entities) => {
+        datastore.runQuery(query, (err, messages) => {
             if (err) {
-                // TODO: Handle errors properly
+                let message = 'An error occurred';
                 console.log(err);
-                res.send({
+                res.status(404);
+
+                if (plain) {
+                    h.response(res, message);
+                    return;
+                }
+
+                h.response(res, {
                     success: false,
-                    error: 'An error occurred'
+                    error: message
                 });
-            } else {
-                res.send({
-                    success: true,
-                    count: entities.length,
-                    messages: entities
-                });
+                return;
             }
+
+            if (plain) {
+                if (messages.length > 0) {
+                    let result = "";
+                    for (let index in messages) {
+                        let msg = messages[index];
+
+                        result += `[#${msg.channel}][${msg.user.display_name}][${h.formatDate(msg.timestamp)}] - ${msg.message}\r\n`;
+                    }
+
+                    h.response(res, result);
+                } else {
+                    h.response(res, "No messages found.");
+                }
+                return;
+            }
+
+            h.response(res, {
+                success: true,
+                count: messages.length,
+                messages: messages
+            });
         });
     });
 
@@ -392,6 +425,17 @@ if (settings.express.enabled) {
             success: false,
             error: '404 not found'
         });
+    });
+
+    /**
+     * Basic error handling.
+     */
+    web.use((err, req, res, next) => {
+        if (err.status === 404) {
+            res.send("Page not found.");
+        }
+
+        res.send("Internal server error");
     });
 
     let webport = settings.express.port || 8000;
