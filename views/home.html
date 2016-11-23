@@ -25,6 +25,11 @@
             <input type="number" class="form-control" step="1" min="1" value="25" id="limit" onchange="update();">
         </div>
 
+        <div class="form-group">
+            <label for="offset"><i class="fa fa-sort-numeric-desc fa-1x"></i> Amount of messages to offset by:</label>
+            <input type="number" class="form-control" step="1" min="0" value="0" id="offset" onchange="update();">
+        </div>
+
         <div class="alert alert-danger hidden" id="error"></div>
 
         <div class="hidden alert alert-success"><i class="fa fa-comments-o fa-1x"></i> Retrieved <strong id="count"></strong> messages</div>
@@ -113,6 +118,7 @@
             updating = true;
 
             var limit = parseInt(value('#limit'));
+            var offset = parseInt(value('#offset'));
 
             var messages = $('#messages');
             messages.before('<p class="text-warning" id="loading">Loading...</p>');
@@ -146,7 +152,8 @@
                 headers: {
                     channel: channel,
                     user: username,
-                    limit: limit
+                    limit: limit,
+                    offset: offset
                 },
                 dataType: "json",
                 success: function (data) {

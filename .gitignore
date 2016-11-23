@@ -3,3 +3,4 @@ config.js*
 channels.json
 ignore.json
 index.yaml
+npm-debug.log
