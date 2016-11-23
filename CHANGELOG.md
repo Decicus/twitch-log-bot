@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.5.0
+- Adds support for specifying an "offset" in the web interface.
+- API for messages now allows query parameters instead of headers.
+    - Headers are still allowed to keep it backwards-compatible.
+- API now allows messages to be returned in "plaintext", by specifying `plain` as a query parameter or header.
+
 ## Version 0.4.2
 - Fix error when ignore list for channel did not exist.
 - Fix minor error in home view for handling errors.
