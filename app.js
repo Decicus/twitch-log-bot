@@ -228,7 +228,7 @@ cmds['unignore'] = (username, user, input) => {
     client.whisper(username, `${name} has been removed from the ignore list for ${channel}`);
 };
 
-client.on('chat', (channel, user, message, self) => {
+const handleMessage = (channel, user, message, self) => {
     channel = h.fmtChannel(channel);
 
     /**
@@ -269,7 +269,10 @@ client.on('chat', (channel, user, message, self) => {
             console.log(err);
         }
     });
-});
+};
+
+client.on('action', handleMessage);
+client.on('chat', handleMessage);
 
 client.on('connected', () => {
     console.log(`[${h.now()}] Successfully connected.`);

@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.5.1
+- Fix bug where `/me` (aka `ACTION`) messages were not being logged.
+
 ## Version 0.5.0
 - Adds support for specifying an "offset" in the web interface.
 - API for messages now allows query parameters instead of headers.
