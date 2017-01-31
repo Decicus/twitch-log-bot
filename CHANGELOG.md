@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.5.2
+- Fix bug/oversight where cheering/bit messages were not being logged.
+
 ## Version 0.5.1
 - Fix bug where `/me` (aka `ACTION`) messages were not being logged.
 
