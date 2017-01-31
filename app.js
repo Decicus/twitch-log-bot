@@ -273,6 +273,7 @@ const handleMessage = (channel, user, message, self) => {
 
 client.on('action', handleMessage);
 client.on('chat', handleMessage);
+client.on('cheer', handleMessage);
 
 client.on('connected', () => {
     console.log(`[${h.now()}] Successfully connected.`);
