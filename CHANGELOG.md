@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.6.0
+- Added support for logging resub messages. The format is currently:
+    - `Resub (X months) - Message: MSG`
+    - Where `X` is the number of months and `MSG` is the message the user sent with their resub.
+    - If the user didn't specify any message, `<No Message>` will be used as a placeholder.
+
 ## Version 0.5.2
 - Fix bug/oversight where cheering/bit messages were not being logged.
 

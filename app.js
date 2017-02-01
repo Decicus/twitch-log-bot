@@ -274,6 +274,36 @@ const handleMessage = (channel, user, message, self) => {
 client.on('action', handleMessage);
 client.on('chat', handleMessage);
 client.on('cheer', handleMessage);
+client.on('resub', (channel, username, months, msg) => {
+    channel = h.fmtChannel(channel);
+
+    if (ignore[channel] && ignore[channel].indexOf(username) >= 0) {
+        return;
+    }
+
+    let ts = Date.now().toString();
+    msg = msg || '<No Message>';
+
+    let data = {
+        channel: channel,
+        username: username,
+        user: {
+            display_name: username
+        },
+        message: `Resub (${months} months) - Message: ${msg}`,
+        timestamp: ts
+    };
+
+    let key = datastore.key([settings.kind, username + '_' + ts]);
+    datastore.insert({
+        key: key,
+        data: data
+    }, (err) => {
+        if (err) {
+            console.log(err);
+        }
+    });
+});
 
 client.on('connected', () => {
     console.log(`[${h.now()}] Successfully connected.`);
