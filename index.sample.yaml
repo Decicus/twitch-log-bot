@@ -9,12 +9,12 @@ indexes:
 - kind: twitch-log-bot
   properties:
   - name: channel
-  - name: username
+  - name: user_id
   - name: timestamp
     direction: desc
 
 - kind: twitch-log-bot
   properties:
-    - name: username
+    - name: user_id
     - name: timestamp
       direction: desc

@@ -67,7 +67,11 @@ config.settings = {
         enabled: false,
         // What port to run the express/web server on
         port: 8000
-    }
+    },
+    // Twitch API stuff.
+    twitch: {
+        clientId: ''
+    },
 };
 
 module.exports = config;
