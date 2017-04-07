@@ -596,3 +596,13 @@ if (settings.express.enabled) {
 }
 
 client.connect();
+
+process.on('SIGINT', () => {
+    client.disconnect()
+        .then(() => {
+            console.log('Successfully disconnected from Twitch chat server.');
+        })
+        .catch((err) => {
+            console.error(`Error occurred disconnecting from Twitch chat server: ${err}`);
+        });
+});

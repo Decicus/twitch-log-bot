@@ -13,6 +13,7 @@ If you want something that has more features, take a look at [CBenni's Logviewer
 - Copy `index.sample.yaml` to `index.yaml` and edit each `kind` to what you wish to store it as in Google Cloud Datastore. Anything else should (by default) be left as-is.
     - The easiest way to create these indexes is by installing [Google Cloud SDK](https://cloud.google.com/sdk/), then running `gcloud init` after installing.
     - After that, while being in the directory of this bot, run `gcloud preview datastore create-indexes index.yaml` and it should create the indexes.
+    - If you wanna make sure you don't have unnecessary indexes on GC Datastore, run `gcloud preview datastore cleanup-indexes index.yaml` in the same directory.
 - Copy `channels.sample.json` to `channels.json` and edit it.
     - **It's recommended to at least remove the example channels**.
 - Copy `ignore.sample.json` to `ignore.json`.
