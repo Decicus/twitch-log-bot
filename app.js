@@ -307,10 +307,6 @@ cmds['unignore'] = (username, user, input) => {
 const handleMessage = (channel, user, message, self) => {
     channel = h.fmtChannel(channel);
 
-    if (user.username === 'decicus') {
-        console.log(JSON.stringify(cache, null, 4));
-    }
-
     /**
      * Ignore users in the ignore list.
      */
