@@ -5,11 +5,23 @@ const settings = config.settings;
 const datastore = require('@google-cloud/datastore')(config.gcloud);
 const express = require('express');
 const fs = require('fs');
+const request = require('request');
 const swig = require('swig');
 const tmi = require('tmi.js');
 
 const client = new tmi.client(config.tmi);
 const web = express();
+const twitchSettings = config.settings.twitch || {};
+const baseApi = request.defaults({
+    baseUrl: 'https://api.twitch.tv/kraken',
+    method: 'GET',
+    headers: {
+        'Accept': 'application/vnd.twitchtv.v5+json',
+        'Authorization': 'OAuth ' + (config.tmi.identity.password || '').replace('oauth:', ''),
+        'Client-ID': twitchSettings.clientId || ''
+    },
+    json: true,
+});
 
 /**
  * Channels the bot has joined (and will join on start).
@@ -17,6 +29,62 @@ const web = express();
  * @type {Array}
  */
 let channels = [];
+
+/**
+ * Cache to map usernames to user IDs and vice versa.
+ *
+ * @type {Object}
+ */
+let cache = {
+    ids: {},
+    names: {},
+};
+
+/**
+ * Get user data based on username.
+ *
+ * @param  {String}   username
+ * @param  {Function} callback
+ * @return {Void}
+ */
+const getUser = (username, callback) => {
+    if (typeof callback !== 'function') {
+        callback = () => {};
+    }
+
+    if (cache.names[username]) {
+        callback(cache.names[username]);
+        return;
+    }
+
+    baseApi({
+        'url': '/users?login=' + username
+    }, (err, response, body) => {
+        if (err) {
+            callback(false);
+            return console.error(err);
+        }
+
+        if (!body.users[0]) {
+            callback(false);
+            return console.error(`User ${username} does not exist!`);
+        }
+
+        const user = body.users[0];
+        const {_id, display_name, name} = user;
+
+        const userToCache = {
+            display_name,
+            _id,
+            name,
+        };
+
+        cache.ids[_id] = userToCache;
+        cache.names[name] = userToCache;
+
+        callback(userToCache);
+    });
+};
 
 /**
  * Which users to ignore in channels by the bot.
@@ -152,12 +220,19 @@ cmds['join'] = (username, user, input) => {
         if (channels.indexOf(channel) >= 0) {
             client.whisper(username, `${channel} is already joined.`);
         } else {
-            client.join(channel).then(() => {
-                channels.push(channel);
-                saveChannels();
-                client.whisper(username, `Successfully joined ${channel} and added the channel to the list.`);
-            }).catch((err) => {
-                client.whisper(username, `An error occurred joining ${channel}: ${err}`);
+            getUser(channel, (user) => {
+                if (!user) {
+                    client.whisper(username, `Error occurred getting data on ${channel}.`);
+                    return;
+                }
+
+                client.join(channel).then(() => {
+                    channels.push(channel);
+                    saveChannels();
+                    client.whisper(username, `Successfully joined ${channel} and added the channel to the list.`);
+                }).catch((err) => {
+                    client.whisper(username, `An error occurred joining ${channel}: ${err}`);
+                });
             });
         }
     } else {
@@ -172,6 +247,7 @@ cmds['leave'] = (username, user, input) => {
     if (input[0]) {
         let channel = h.fmtChannel(input[0]);
         let index = channels.indexOf(channel);
+
         if (index >= 0) {
             client.part(channel).then(() => {
                 channels.splice(index, 1);
@@ -231,6 +307,10 @@ cmds['unignore'] = (username, user, input) => {
 const handleMessage = (channel, user, message, self) => {
     channel = h.fmtChannel(channel);
 
+    if (user.username === 'decicus') {
+        console.log(JSON.stringify(cache, null, 4));
+    }
+
     /**
      * Ignore users in the ignore list.
      */
@@ -284,24 +364,33 @@ client.on('resub', (channel, username, months, msg) => {
     let ts = Date.now().toString();
     msg = msg || '<No Message>';
 
-    let data = {
-        channel: channel,
-        username: username,
-        user: {
-            display_name: username
-        },
-        message: `Resub (${months} months) - Message: ${msg}`,
-        timestamp: ts
-    };
-
-    let key = datastore.key([settings.kind, username + '_' + ts]);
-    datastore.insert({
-        key: key,
-        data: data
-    }, (err) => {
-        if (err) {
-            console.log(err);
+    getUser(username, (cachedUser) => {
+        let user_id = null;
+        if (cachedUser) {
+            user_id = cachedUser._id;
         }
+
+        let data = {
+            channel: channel,
+            channel_id: cache.names[channel]._id,
+            username: username,
+            user_id: user_id,
+            user: {
+                display_name: username
+            },
+            message: `Resub (${months} months) - Message: ${msg}`,
+            timestamp: ts
+        };
+
+        let key = datastore.key([settings.kind, username + '_' + ts]);
+        datastore.insert({
+            key: key,
+            data: data
+        }, (err) => {
+            if (err) {
+                console.log(err);
+            }
+        });
     });
 });
 
@@ -313,7 +402,12 @@ client.on('connected', () => {
         // concat channels array to get a new array instance.
         let temp = channels.concat();
         let queue = setInterval(() => {
-            client.join(temp[0]);
+            const chan = temp[0];
+
+            // Cache channel data
+            getUser(chan);
+
+            client.join(chan);
             temp.shift();
 
             if (temp.length === 0) {
@@ -395,27 +489,20 @@ if (settings.express.enabled) {
         let query = datastore.createQuery(settings.kind);
 
         if (channel && channel.length > 0) {
-            query = query.filter('channel', '=', channel)
-                .order('channel');
+            query = query.filter('channel_id', '=', cache.names[channel]._id)
+                    .order('channel_id');
         }
 
         if (user && user.length > 0) {
             user = user.toLowerCase();
-            query = query.filter('username', '=', user);
         }
 
-        query = query
-            .offset(offset)
-            .limit(limit);
+        const userGet = (user && user.length > 0) ? user : channel;
 
-        query = query.order('timestamp', {
-            descending: true
-        });
-
-        datastore.runQuery(query, (err, messages) => {
-            if (err) {
-                let message = 'An error occurred';
-                console.log(err);
+        getUser(userGet, (cachedUser) => {
+            let message = 'An error occurred';
+            if (!cachedUser) {
+                message += `: User with username ${userGet} does not exist.`;
                 res.status(404);
 
                 if (plain) {
@@ -430,26 +517,56 @@ if (settings.express.enabled) {
                 return;
             }
 
-            if (plain) {
-                if (messages.length > 0) {
-                    let result = "";
-                    for (let index in messages) {
-                        let msg = messages[index];
-
-                        result += `[#${msg.channel}][${msg.user.display_name}][${h.formatDate(msg.timestamp)}] - ${msg.message}\r\n`;
-                    }
-
-                    h.response(res, result);
-                } else {
-                    h.response(res, "No messages found.");
-                }
-                return;
+            if (user && user.length > 0) {
+                query = query.filter('user_id', '=', cachedUser._id);
             }
 
-            h.response(res, {
-                success: true,
-                count: messages.length,
-                messages: messages
+            query = query
+                .offset(offset)
+                .limit(limit);
+
+            query = query.order('timestamp', {
+                descending: true
+            });
+
+            datastore.runQuery(query, (err, messages) => {
+                if (err) {
+                    console.error(err);
+                    res.status(404);
+
+                    if (plain) {
+                        h.response(res, message);
+                        return;
+                    }
+
+                    h.response(res, {
+                        success: false,
+                        error: message
+                    });
+                    return;
+                }
+
+                if (plain) {
+                    if (messages.length > 0) {
+                        let result = "";
+                        for (let index in messages) {
+                            let msg = messages[index];
+
+                            result += `[#${msg.channel}][${msg.user.display_name}][${h.formatDate(msg.timestamp)}] - ${msg.message}\r\n`;
+                        }
+
+                        h.response(res, result);
+                    } else {
+                        h.response(res, "No messages found.");
+                    }
+                    return;
+                }
+
+                h.response(res, {
+                    success: true,
+                    count: messages.length,
+                    messages: messages
+                });
             });
         });
     });

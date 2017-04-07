@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.7.0
+- Lookups are now done via user IDs instead of names. This will account for users that have changed their names.
+
 ## Version 0.6.0
 - Added support for logging resub messages. The format is currently:
     - `Resub (X months) - Message: MSG`
