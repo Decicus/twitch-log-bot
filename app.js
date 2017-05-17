@@ -304,6 +304,9 @@ cmds['unignore'] = (username, user, input) => {
     client.whisper(username, `${name} has been removed from the ignore list for ${channel}`);
 };
 
+/**
+ * Handles chat messages
+ */
 const handleMessage = (channel, user, message, self) => {
     channel = h.fmtChannel(channel);
 
@@ -319,7 +322,7 @@ const handleMessage = (channel, user, message, self) => {
      *
      * @type {Object}
      */
-    let data = {
+    const data = {
         channel: channel,
         channel_id: user['room-id'],
         username: user.username,
@@ -336,7 +339,7 @@ const handleMessage = (channel, user, message, self) => {
         timestamp: user['tmi-sent-ts']
     };
 
-    let key = datastore.key([settings.kind, user.id]);
+    const key = datastore.key([settings.kind, user.id]);
     datastore.insert({
         key: key,
         data: data
@@ -347,10 +350,10 @@ const handleMessage = (channel, user, message, self) => {
     });
 };
 
-client.on('action', handleMessage);
-client.on('chat', handleMessage);
-client.on('cheer', handleMessage);
-client.on('resub', (channel, username, months, msg) => {
+/**
+ * Handles the different subscription events
+ */
+const handleSubs = (channel, username, m, msg) => {
     channel = h.fmtChannel(channel);
 
     if (ignore[channel] && ignore[channel].indexOf(username) >= 0) {
@@ -366,7 +369,13 @@ client.on('resub', (channel, username, months, msg) => {
             user_id = cachedUser._id;
         }
 
-        let data = {
+        /**
+         * 'resub' event: This will be the amount of months the user has been subbed for (https://docs.tmijs.org/v1.2.1/Events.html#resub)
+         * 'subscription' event: This will be an object with the plan/method information (https://docs.tmijs.org/v1.2.1/Events.html#subscription)
+         */
+        const prefix = typeof m === 'number' ? `Resub (${m} months)` : `Subscription (Plan: ${m.planName})`;
+
+        const data = {
             channel: channel,
             channel_id: cache.names[channel]._id,
             username: username,
@@ -374,11 +383,11 @@ client.on('resub', (channel, username, months, msg) => {
             user: {
                 display_name: username
             },
-            message: `Resub (${months} months) - Message: ${msg}`,
+            message: `${prefix} - Message: ${msg}`,
             timestamp: ts
         };
 
-        let key = datastore.key([settings.kind, username + '_' + ts]);
+        const key = datastore.key([settings.kind, username + '_' + ts]);
         datastore.insert({
             key: key,
             data: data
@@ -388,7 +397,13 @@ client.on('resub', (channel, username, months, msg) => {
             }
         });
     });
-});
+};
+
+client.on('action', handleMessage);
+client.on('chat', handleMessage);
+client.on('cheer', handleMessage);
+client.on('resub', handleSubs);
+client.on('subscription', handleSubs);
 
 client.on('connected', () => {
     console.log(`[${h.now()}] Successfully connected.`);
