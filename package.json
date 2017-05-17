@@ -1,6 +1,6 @@
 {
   "name": "twitch-log-bot",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Twitch logging with Google Cloud Datastore",
   "main": "app.js",
   "scripts": {
