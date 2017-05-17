@@ -2,6 +2,7 @@
 
 ## Version 0.8.0
 - Twitch has [done some changes to the subscription system](https://discuss.dev.twitch.tv/t/subscriptions-beta-changes/10023), which allows new subscriptions to share a message, just like resubs.
+- Fix bug where quitting the bot wouldn't properly exit the process.
 
 ## Version 0.7.0
 - Lookups are now done via user IDs instead of names. This will account for users that have changed their names.
