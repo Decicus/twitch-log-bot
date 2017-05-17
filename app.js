@@ -353,7 +353,7 @@ const handleMessage = (channel, user, message, self) => {
 /**
  * Handles the different subscription events
  */
-const handleSubs = (channel, username, m, msg) => {
+const handleSubs = (channel, username, m, msg, methods) => {
     channel = h.fmtChannel(channel);
 
     if (ignore[channel] && ignore[channel].indexOf(username) >= 0) {
@@ -373,7 +373,7 @@ const handleSubs = (channel, username, m, msg) => {
          * 'resub' event: This will be the amount of months the user has been subbed for (https://docs.tmijs.org/v1.2.1/Events.html#resub)
          * 'subscription' event: This will be an object with the plan/method information (https://docs.tmijs.org/v1.2.1/Events.html#subscription)
          */
-        const prefix = typeof m === 'number' ? `Resub (${m} months)` : `Subscription (Plan: [${m.plan}] ${m.planName})`;
+        const prefix = typeof m === 'number' ? `Resub (${m} months) - Plan: [${methods.plan}] ${methods.planName}` : `Subscription - Plan: [${m.plan}] ${m.planName}`;
 
         const data = {
             channel: channel,
