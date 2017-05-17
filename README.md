@@ -12,8 +12,8 @@ If you want something that has more features, take a look at [CBenni's Logviewer
 - Copy `config.sample.js` to `config.js` and edit the values (see comments in the config-file).
 - Copy `index.sample.yaml` to `index.yaml` and edit each `kind` to what you wish to store it as in Google Cloud Datastore. Anything else should (by default) be left as-is.
     - The easiest way to create these indexes is by installing [Google Cloud SDK](https://cloud.google.com/sdk/), then running `gcloud init` after installing.
-    - After that, while being in the directory of this bot, run `gcloud preview datastore create-indexes index.yaml` and it should create the indexes.
-    - If you wanna make sure you don't have unnecessary indexes on GC Datastore, run `gcloud preview datastore cleanup-indexes index.yaml` in the same directory.
+    - After that, while being in the directory of this bot, run `gcloud datastore create-indexes index.yaml` and it should create the indexes.
+    - If you wanna make sure you don't have unnecessary indexes on GC Datastore, run `gcloud datastore cleanup-indexes index.yaml` in the same directory.
 - Copy `channels.sample.json` to `channels.json` and edit it.
     - **It's recommended to at least remove the example channels**.
 - Copy `ignore.sample.json` to `ignore.json`.
@@ -25,7 +25,7 @@ If you want something that has more features, take a look at [CBenni's Logviewer
 - Make sure dependencies are up-to-date by using `npm install`.
 - Make sure `config.js` has the same properties as `config.sample.js`.
     - Delete/move config.js elsewhere and make a new `config.js` based off `config.sample.js` **if you feel like you have to**.
-- Make sure `index.yaml` has the same values as `index.sample.yaml` (remember to edit the `kind`!) and update indexes using for example `gcloud preview datastore create-indexes index.yaml`.
+- Make sure `index.yaml` has the same values as `index.sample.yaml` (remember to edit the `kind`!) and update indexes using for example `gcloud datastore create-indexes index.yaml`.
 - Run the bot using `node app.js`, or alternatively use [pm2](http://pm2.keymetrics.io/).
 
 ## Changelog
