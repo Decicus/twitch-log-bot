@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.8.1
+- Fix bug where the resub "plan" wasn't logging correctly due to referring to the wrong parameter on the event.
+
 ## Version 0.8.0
 - Twitch has [done some changes to the subscription system](https://discuss.dev.twitch.tv/t/subscriptions-beta-changes/10023), which allows new subscriptions to share a message, just like resubs.
 - Fix bug where quitting the bot wouldn't properly exit the process.
