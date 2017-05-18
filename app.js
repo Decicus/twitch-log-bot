@@ -353,7 +353,7 @@ const handleMessage = (channel, user, message, self) => {
 /**
  * Handles the different subscription events
  */
-const handleSubs = (channel, username, m, msg, methods) => {
+const handleSubs = (channel, username, m, msg, userstate, methods) => {
     channel = h.fmtChannel(channel);
 
     if (ignore[channel] && ignore[channel].indexOf(username) >= 0) {
