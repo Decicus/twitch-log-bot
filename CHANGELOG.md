@@ -5,7 +5,7 @@
     - Happens in instances where the Twitch API request fails, or the user doesn't "exist" (suspended, deactivated etc).
 - Fix "bug" (more of an oversight) where `twitchnotify` messages were being logged as normal messages. These are now ignored.
     - This was introduced in [Version 0.8.0](#version-080) where tmi.js was updated to 1.2.1 and subscription messages were changed.
-- Fix `index.sample.yaml` that should have been updated in [Version 0.7.0](#version-080) (I'm sorry).
+- Fix `index.sample.yaml` that should have been updated in [Version 0.7.0](#version-070) (I'm sorry).
 
 ## Version 0.8.1
 - Fix bug where the resub "plan" wasn't logging correctly due to referring to the wrong parameter on the event.
