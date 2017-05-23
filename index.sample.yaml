@@ -2,13 +2,13 @@ indexes:
 
 - kind: twitch-log-bot
   properties:
-  - name: channel
+  - name: channel_id
   - name: timestamp
     direction: desc
 
 - kind: twitch-log-bot
   properties:
-  - name: channel
+  - name: channel_id
   - name: user_id
   - name: timestamp
     direction: desc
@@ -16,5 +16,18 @@ indexes:
 - kind: twitch-log-bot
   properties:
     - name: user_id
+    - name: timestamp
+      direction: desc
+
+- kind: twitch-log-bot
+  properties:
+  - name: channel_id
+  - name: username
+  - name: timestamp
+    direction: desc
+
+- kind: twitch-log-bot
+  properties:
+    - name: username
     - name: timestamp
       direction: desc

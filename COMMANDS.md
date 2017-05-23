@@ -13,3 +13,4 @@ Parameters are specified as `<required>`, `[optional]` and `(none)`.
 | `part`       | `<channel>` | Alias of `leave` |
 | `ping`       | `(none)`    | Replies with `PONG` (for testing purposes) |
 | `unignore`   | `<channel>` `<username>` | Removes the username from the ignore list for the specified channel. |
+| `version`    | `(none)`    | Replies with the app version. |

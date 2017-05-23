@@ -1,6 +1,7 @@
 'use strict';
 const config = require('./config');
 const h = require('./helpers');
+const pkg = require('./package');
 const settings = config.settings;
 const datastore = require('@google-cloud/datastore')(config.gcloud);
 const express = require('express');
@@ -305,10 +306,26 @@ cmds['unignore'] = (username, user, input) => {
 };
 
 /**
+ * Returns the app version.
+ */
+cmds['version'] = (username) => {
+    client.whisper(username, pkg.version);
+};
+
+/**
  * Handles chat messages
  */
 const handleMessage = (channel, user, message, self) => {
     channel = h.fmtChannel(channel);
+
+    /**
+     * Ignore legacy "twitchnotify" subscriber messages.
+     *
+     * These should no longer show up anyways.
+     */
+    if (user.username === 'twitchnotify') {
+        return;
+    }
 
     /**
      * Ignore users in the ignore list.
@@ -511,25 +528,24 @@ if (settings.express.enabled) {
         const userGet = (user && user.length > 0) ? user : channel;
 
         getUser(userGet, (cachedUser) => {
-            let message = 'An error occurred';
-            if (!cachedUser) {
-                message += `: User with username ${userGet} does not exist.`;
-                res.status(404);
-
-                if (plain) {
-                    h.response(res, message);
-                    return;
-                }
-
-                h.response(res, {
-                    success: false,
-                    error: message
-                });
-                return;
-            }
-
             if (user && user.length > 0) {
-                query = query.filter('user_id', '=', cachedUser._id);
+                /**
+                 * User does not "exist", but may just be banned/deleted.
+                 * Fallback to search by username.
+                 *
+                 * Eventually I wanna get the user_id from one of the resulting
+                 * messages in the query and use that to query more messages by
+                 * the user, but as of right now this is just a quickfix.
+                 *
+                 * This does not account for channels that are banned, which is
+                 * something else I'll have to "fix" at a later date.
+                 * For now: Don't get banned.
+                 */
+                if (cachedUser) {
+                    query = query.filter('user_id', '=', cachedUser._id);
+                } else {
+                    query = query.filter('username', '=', user);
+                }
             }
 
             query = query
@@ -542,6 +558,7 @@ if (settings.express.enabled) {
 
             datastore.runQuery(query, (err, messages) => {
                 if (err) {
+                    const message = "Unable to retrieve messages for this user/channel.";
                     console.error(err);
                     res.status(404);
 
