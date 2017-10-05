@@ -82,6 +82,7 @@ const getUser = (username, callback) => {
 
         cache.ids[_id] = userToCache;
         cache.names[name] = userToCache;
+        console.log(`Loaded ${name} (${_id}) into cache.`);
 
         callback(userToCache);
     });
@@ -141,6 +142,11 @@ const loadChannels = () => {
 
 // Load channels on startup
 loadChannels();
+
+// Cache channel data
+channels.forEach((chan) => {
+    getUser(chan);
+});
 
 /**
  * Saves channels to file.
@@ -432,9 +438,6 @@ client.on('connected', () => {
         let queue = setInterval(() => {
             const chan = temp[0];
 
-            // Cache channel data
-            getUser(chan);
-
             client.join(chan);
             temp.shift();
 
@@ -619,7 +622,7 @@ if (settings.express.enabled) {
     /**
      * Basic error handling.
      */
-    web.use((err, req, res) => {
+    web.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
         if (err.status === 404) {
             res.send('Page not found.');
         }
