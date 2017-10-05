@@ -180,15 +180,16 @@
 
                             var displayName = md.user.display_name;
                             var appendUsername = '';
+                            var username = md.username.toLowerCase();
 
-                            if (displayName && displayName.toLowerCase() != md.username) {
-                                appendUsername = ' (' + md.username + ')';
+                            if (displayName && displayName.toLowerCase() !== username) {
+                                appendUsername = ' (' + username + ')';
                             }
 
                             var htmlStr = '';
                             htmlStr += '<th>' + date.join(' ') + '</th>';
                             htmlStr += '<td>' + md.channel + '</td>';
-                            htmlStr += '<td>' + (displayName || md.username) + appendUsername + '</td>';
+                            htmlStr += '<td>' + (displayName || username) + appendUsername + '</td>';
                             htmlStr += '<td>' + htmlEntities(md.message) + '</td>';
 
                             $('<tr/>')
