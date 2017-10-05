@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.8.3
+- Add username to table cell where display name is in certain cases.
+    - Specifically where the lowercased version of the display name is different from the username (CJK names).
+- Allow people to search for user IDs directly, instead of usernames.
+- Fix an issue where channel data (such as IDs) wouldn't be cached when autoconnect wasn't enabled.
+    - This would cause errors when trying to fetch messages from a specific channel.
+
 ## Version 0.8.2
 - Fallback to searching by username instead of user ID when unable to retrieve the ID.
     - Happens in instances where the Twitch API request fails, or the user doesn't "exist" (suspended, deactivated etc).

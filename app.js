@@ -82,6 +82,7 @@ const getUser = (username, callback) => {
 
         cache.ids[_id] = userToCache;
         cache.names[name] = userToCache;
+        console.log(`Loaded ${name} (${_id}) into cache.`);
 
         callback(userToCache);
     });
@@ -130,7 +131,7 @@ const saveJson = (filename, input) => {
  * @return {Void}
  */
 const loadChannels = () => {
-    let read = readJson(settings.channels || __dirname + "/channels.json");
+    let read = readJson(settings.channels || __dirname + '/channels.json');
 
     if (read === false) {
         return;
@@ -142,13 +143,18 @@ const loadChannels = () => {
 // Load channels on startup
 loadChannels();
 
+// Cache channel data
+channels.forEach((chan) => {
+    getUser(chan);
+});
+
 /**
  * Saves channels to file.
  *
  * @return {Void}
  */
 const saveChannels = () => {
-    saveJson(settings.channels || __dirname + "/channels.json", channels);
+    saveJson(settings.channels || __dirname + '/channels.json', channels);
 };
 
 /**
@@ -157,7 +163,7 @@ const saveChannels = () => {
  * @return {Void}
  */
 const loadIgnore = () => {
-    let read = readJson(settings.ignore || __dirname + "/ignore.json");
+    let read = readJson(settings.ignore || __dirname + '/ignore.json');
 
     if (read === false) {
         return;
@@ -175,7 +181,7 @@ loadIgnore();
  * @return {Void}
  */
 const saveIgnore = () => {
-    saveJson(settings.ignore || __dirname + "/ignore.json", ignore);
+    saveJson(settings.ignore || __dirname + '/ignore.json', ignore);
 };
 
 /**
@@ -274,7 +280,7 @@ cmds['part'] = cmds['leave'];
  * Ping pong.
  */
 cmds['ping'] = (username) => {
-    client.whisper(username, "PONG");
+    client.whisper(username, 'PONG');
 };
 
 /**
@@ -315,7 +321,7 @@ cmds['version'] = (username) => {
 /**
  * Handles chat messages
  */
-const handleMessage = (channel, user, message, self) => {
+const handleMessage = (channel, user, message) => {
     channel = h.fmtChannel(channel);
 
     /**
@@ -432,9 +438,6 @@ client.on('connected', () => {
         let queue = setInterval(() => {
             const chan = temp[0];
 
-            // Cache channel data
-            getUser(chan);
-
             client.join(chan);
             temp.shift();
 
@@ -459,7 +462,7 @@ client.on('whisper', (username, user, message) => {
      * Handles admin commands through whispers
      */
     if (settings.admins.indexOf(username) >= 0 && message.startsWith(settings.prefix)) {
-        let input = message.split(" ");
+        let input = message.split(' ');
         // remove prefix from command name
         let command = input[0].slice(settings.prefix.length).toLowerCase();
         if (cmds[command]) {
@@ -476,7 +479,7 @@ if (settings.express.enabled) {
     web.set('views', __dirname + '/views');
 
     web.get('/', (req, res) => {
-        res.render("home");
+        res.render('home');
     });
 
     web.get('/api/channels', (req, res) => {
@@ -487,13 +490,14 @@ if (settings.express.enabled) {
     });
 
     web.get('/api/messages', (req, res) => {
-        let channel = (h.requestValue(req, 'channel') || "");
-        let user = (h.requestValue(req, 'user') || "");
+        let channel = (h.requestValue(req, 'channel') || '');
+        let user = (h.requestValue(req, 'user') || '');
         user = user.trim();
         channel = channel.trim();
         let limit = (parseInt(h.requestValue(req, 'limit')) || 25);
         let offset = (parseInt(h.requestValue(req, 'offset')) || 0);
         let plain = (typeof h.requestValue(req, 'plain') !== 'undefined' ? true : false);
+        let useUserId = (typeof h.requestValue(req, 'userid') !== 'undefined' ? true : false);
 
         let max = (settings.queryLimit || 200);
         if (limit > max) {
@@ -501,7 +505,7 @@ if (settings.express.enabled) {
         }
 
         if ((!channel || channel.length === 0) && (!user || user.length === 0)) {
-            let message = "No channel or user specified";
+            let message = 'No channel or user specified';
             if (plain) {
                 h.response(res, message);
                 return;
@@ -518,7 +522,7 @@ if (settings.express.enabled) {
 
         if (channel && channel.length > 0) {
             query = query.filter('channel_id', '=', cache.names[channel]._id)
-                    .order('channel_id');
+                .order('channel_id');
         }
 
         if (user && user.length > 0) {
@@ -526,26 +530,29 @@ if (settings.express.enabled) {
         }
 
         const userGet = (user && user.length > 0) ? user : channel;
-
-        getUser(userGet, (cachedUser) => {
-            if (user && user.length > 0) {
-                /**
-                 * User does not "exist", but may just be banned/deleted.
-                 * Fallback to search by username.
-                 *
-                 * Eventually I wanna get the user_id from one of the resulting
-                 * messages in the query and use that to query more messages by
-                 * the user, but as of right now this is just a quickfix.
-                 *
-                 * This does not account for channels that are banned, which is
-                 * something else I'll have to "fix" at a later date.
-                 * For now: Don't get banned.
-                 */
-                if (cachedUser) {
-                    query = query.filter('user_id', '=', cachedUser._id);
-                } else {
-                    query = query.filter('username', '=', user);
+        const handleUser = (cachedUser) => {
+            if (!useUserId) {
+                if (user && user.length > 0) {
+                    /**
+                     * User does not "exist", but may just be sitewide suspended/deleted.
+                     * Fallback to search by username.
+                     *
+                     * Eventually I wanna get the user_id from one of the resulting
+                     * messages in the query and use that to query more messages by
+                     * the user, but as of right now this is just a quickfix.
+                     *
+                     * This does not account for channels that are banned, which is
+                     * something else I'll have to "fix" at a later date.
+                     * For now: Don't get suspended.
+                     */
+                    if (cachedUser) {
+                        query = query.filter('user_id', '=', cachedUser._id);
+                    } else {
+                        query = query.filter('username', '=', user);
+                    }
                 }
+            } else {
+                query = query.filter('user_id', '=', cachedUser);
             }
 
             query = query
@@ -558,7 +565,7 @@ if (settings.express.enabled) {
 
             datastore.runQuery(query, (err, messages) => {
                 if (err) {
-                    const message = "Unable to retrieve messages for this user/channel.";
+                    const message = 'Unable to retrieve messages for this user/channel.';
                     console.error(err);
                     res.status(404);
 
@@ -576,7 +583,7 @@ if (settings.express.enabled) {
 
                 if (plain) {
                     if (messages.length > 0) {
-                        let result = "";
+                        let result = '';
                         for (let index in messages) {
                             let msg = messages[index];
 
@@ -585,7 +592,7 @@ if (settings.express.enabled) {
 
                         h.response(res, result);
                     } else {
-                        h.response(res, "No messages found.");
+                        h.response(res, 'No messages found.');
                     }
                     return;
                 }
@@ -596,7 +603,13 @@ if (settings.express.enabled) {
                     messages: messages
                 });
             });
-        });
+        };
+
+        if (useUserId) {
+            handleUser(user);
+        } else {
+            getUser(userGet, handleUser);
+        }
     });
 
     web.get('/api/*', function(req, res) {
@@ -609,12 +622,12 @@ if (settings.express.enabled) {
     /**
      * Basic error handling.
      */
-    web.use((err, req, res, next) => {
+    web.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
         if (err.status === 404) {
-            res.send("Page not found.");
+            res.send('Page not found.');
         }
 
-        res.send("Internal server error");
+        res.send('Internal server error');
     });
 
     let webport = settings.express.port || 8000;

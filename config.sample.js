@@ -16,12 +16,12 @@ config.tmi = {
         secure: true
     },
     identity: {
-        username: "decicus",
+        username: 'decicus',
         // The chat OAuth token can be retrieved using several methods.
         // Here are at least two:
         // - https://decicus.github.io/twitch-chat-token/
         // - https://twitchapps.com/tmi/
-        password: "oauth:KappaHey"
+        password: 'oauth:KappaHey'
     }
 };
 
