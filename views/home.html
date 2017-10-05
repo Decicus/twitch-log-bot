@@ -16,8 +16,15 @@
         </div>
 
         <div class="form-group">
-            <label for="username"><i class="fa fa-1x fa-search"></i> Username:</label>
+            <label for="username"><i class="fa fa-1x fa-search"></i> Username/User ID:</label>
             <input type="text" class="form-control" id="username" />
+        </div>
+
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" id="userid" onchange="update();">
+                Search by Twitch user ID instead of username
+            </label>
         </div>
 
         <div class="form-group">
@@ -126,6 +133,7 @@
             var refresh = $('#refresh');
             var count = $('#count');
             var countP = count.parent('div');
+            var isUserId = $('#userid');
 
             if (!messages.hasClass('hidden')) {
                 messages.addClass('hidden');
@@ -147,8 +155,14 @@
             }
 
             $('.fa', refresh).addClass('fa-spin');
+            var apiUrl = './api/messages';
+
+            if (isUserId.is(':checked')) {
+                apiUrl += '?userid=true';
+            }
+
             $.ajax({
-                url: '/api/messages',
+                url: apiUrl,
                 headers: {
                     channel: channel,
                     user: username,

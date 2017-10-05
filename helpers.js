@@ -7,8 +7,8 @@ const helpers = {};
  * @return {String}
  */
 helpers.fmtChannel = (channel) => {
-    return channel.replace("#", "").toLowerCase();
-}
+    return channel.replace('#', '').toLowerCase();
+};
 
 /**
  * Returns a new date string of "now" when it's called.
@@ -16,10 +16,10 @@ helpers.fmtChannel = (channel) => {
  * @return {String}
  */
 helpers.now = () => {
-    let date = new Date().toUTCString().split(" ");
+    let date = new Date().toUTCString().split(' ');
     date.shift();
     date.pop();
-    return date.join(" ") + " UTC";
+    return date.join(' ') + ' UTC';
 };
 
 /**
@@ -31,11 +31,11 @@ helpers.now = () => {
 helpers.formatDate = (timestamp) => {
     timestamp = parseInt(timestamp);
 
-    let date = new Date(timestamp).toUTCString().split(" ");
+    let date = new Date(timestamp).toUTCString().split(' ');
     date.shift();
     date.pop();
 
-    return date.join(" ");
+    return date.join(' ');
 };
 
 /**
