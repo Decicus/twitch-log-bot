@@ -164,8 +164,21 @@
                             date.shift();
                             date.pop();
 
+                            var displayName = md.user.display_name;
+                            var appendUsername = '';
+
+                            if (displayName && displayName.toLowerCase() != md.username) {
+                                appendUsername = ' (' + md.username + ')';
+                            }
+
+                            var htmlStr = '';
+                            htmlStr += '<th>' + date.join(' ') + '</th>';
+                            htmlStr += '<td>' + md.channel + '</td>';
+                            htmlStr += '<td>' + (displayName || md.username) + appendUsername + '</td>';
+                            htmlStr += '<td>' + htmlEntities(md.message) + '</td>';
+
                             $('<tr/>')
-                                .html('<th>' + date.join(" ") + '</th><td>' +  md.channel +'</td><td>' + md.user.display_name + '</td><td>' + htmlEntities(md.message) + '</td>')
+                                .html(htmlStr)
                                 .appendTo('tbody', messages);
                         });
                         messages.removeClass('hidden');
