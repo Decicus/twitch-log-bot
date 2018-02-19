@@ -5,10 +5,14 @@ module.exports = {
     },
     "extends": "eslint:recommended",
     "rules": {
+        "comma-dangle": ["error", {
+            "arrays": "always-multiline",
+            "objects": "always-multiline"
+        }],
         "indent": [
             "error",
             4,
-            {"SwitchCase": 1},
+            { "SwitchCase": 1 },
         ],
         "linebreak-style": [
             "error",

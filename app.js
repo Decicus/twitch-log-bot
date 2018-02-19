@@ -19,7 +19,7 @@ const baseApi = request.defaults({
     headers: {
         'Accept': 'application/vnd.twitchtv.v5+json',
         'Authorization': 'OAuth ' + (config.tmi.identity.password || '').replace('oauth:', ''),
-        'Client-ID': twitchSettings.clientId || ''
+        'Client-ID': twitchSettings.clientId || '',
     },
     json: true,
 });
@@ -59,7 +59,7 @@ const getUser = (username, callback) => {
     }
 
     baseApi({
-        'url': '/users?login=' + username
+        'url': '/users?login=' + username,
     }, (err, response, body) => {
         if (err) {
             callback(false);
@@ -356,21 +356,19 @@ const handleMessage = (channel, user, message) => {
             color: user.color,
             badges: user.badges,
             subscriber: user.subscriber,
-            turbo: user.turbo
+            turbo: user.turbo,
         },
         message: message,
-        timestamp: user['tmi-sent-ts']
+        timestamp: user['tmi-sent-ts'],
     };
 
     const key = datastore.key([settings.kind, user.id]);
-    datastore.insert({
-        key: key,
-        data: data
-    }, (err) => {
-        if (err) {
-            console.log(err);
-        }
-    });
+    datastore
+        .save({
+            key: key,
+            data: data,
+        })
+        .catch(console.error);
 };
 
 /**
@@ -404,29 +402,73 @@ const handleSubs = (channel, username, m, msg, userstate, methods) => {
             username: username,
             user_id: user_id,
             user: {
-                display_name: username
+                display_name: username,
             },
             message: `${prefix} - Message: ${msg}`,
-            timestamp: ts
+            timestamp: ts,
         };
 
         const key = datastore.key([settings.kind, username + '_' + ts]);
-        datastore.insert({
-            key: key,
-            data: data
-        }, (err) => {
-            if (err) {
-                console.log(err);
-            }
-        });
+        datastore
+            .save({
+                key: key,
+                data: data,
+            })
+            .catch(console.error);
+    });
+};
+
+/**
+ * Handles timeouts and bans in a channel.
+ *
+ * @param {String} channel Channel name where the ban/timeout occurred.
+ * @param {String} username Username of user that got banned/timed out.
+ * @param {String|null} reason Reason why username was banned/timed out.
+ * @param {Number|undefined} length Length of time someone got timed out (in seconds).
+ */
+const handleTimeoutAndBan = (channel, username, reason, length) => {
+    channel = h.fmtChannel(channel);
+
+    const type = length === undefined ? 'BAN' : 'TIMEOUT';
+    const suffix = length === undefined ? '' : ` - Length (seconds): ${length}`;
+    reason = reason || '<No timeout/ban reason given>';
+
+    const ts = Date.now().toString();
+    getUser(username, (cachedUser) => {
+        let userId = null;
+        if (cachedUser) {
+            userId = cachedUser._id;
+        }
+
+        const data = {
+            channel: channel,
+            channel_id: cache.names[channel]._id,
+            username: username,
+            user_id: userId,
+            user: {
+                display_name: username,
+            },
+            message: `* ${type} - Reason: ${reason + suffix}`,
+            timestamp: ts,
+        };
+
+        const key = datastore.key([settings.kind, `${channel}_${username}_${ts}`]);
+        datastore
+            .save({
+                key,
+                data,
+            })
+            .catch(console.error);
     });
 };
 
 client.on('action', handleMessage);
+client.on('ban', handleTimeoutAndBan);
 client.on('chat', handleMessage);
 client.on('cheer', handleMessage);
 client.on('resub', handleSubs);
 client.on('subscription', handleSubs);
+client.on('timeout', handleTimeoutAndBan);
 
 client.on('connected', () => {
     console.log(`[${h.now()}] Successfully connected.`);
@@ -485,7 +527,7 @@ if (settings.express.enabled) {
     web.get('/api/channels', (req, res) => {
         res.send({
             success: true,
-            channels: channels
+            channels: channels,
         });
     });
 
@@ -513,7 +555,7 @@ if (settings.express.enabled) {
 
             h.response(res, {
                 success: false,
-                error: message
+                error: message,
             });
             return;
         }
@@ -560,11 +602,38 @@ if (settings.express.enabled) {
                 .limit(limit);
 
             query = query.order('timestamp', {
-                descending: true
+                descending: true,
             });
 
-            datastore.runQuery(query, (err, messages) => {
-                if (err) {
+            datastore
+                .runQuery(query)
+                .then((messages) => {
+                    messages = messages[0];
+
+                    if (plain) {
+                        if (messages.length > 0) {
+                            let result = '';
+                            for (let index in messages) {
+                                let msg = messages[index];
+
+                                result += `[#${msg.channel}][${msg.user.display_name}][${h.formatDate(msg.timestamp)}] - ${msg.message}\r\n`;
+                            }
+
+                            h.response(res, result);
+                        } else {
+                            h.response(res, 'No messages found.');
+                        }
+
+                        return;
+                    }
+
+                    h.response(res, {
+                        success: true,
+                        count: messages.length,
+                        messages: messages,
+                    });
+                })
+                .catch((err) => {
                     const message = 'Unable to retrieve messages for this user/channel.';
                     console.error(err);
                     res.status(404);
@@ -576,33 +645,9 @@ if (settings.express.enabled) {
 
                     h.response(res, {
                         success: false,
-                        error: message
+                        error: message,
                     });
-                    return;
-                }
-
-                if (plain) {
-                    if (messages.length > 0) {
-                        let result = '';
-                        for (let index in messages) {
-                            let msg = messages[index];
-
-                            result += `[#${msg.channel}][${msg.user.display_name}][${h.formatDate(msg.timestamp)}] - ${msg.message}\r\n`;
-                        }
-
-                        h.response(res, result);
-                    } else {
-                        h.response(res, 'No messages found.');
-                    }
-                    return;
-                }
-
-                h.response(res, {
-                    success: true,
-                    count: messages.length,
-                    messages: messages
                 });
-            });
         };
 
         if (useUserId) {
@@ -615,7 +660,7 @@ if (settings.express.enabled) {
     web.get('/api/*', function(req, res) {
         res.send({
             success: false,
-            error: '404 not found'
+            error: '404 not found',
         });
     });
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.9.0
+- Added support for bans and timeouts, with (timeout) lengths and timeout/ban reason.
+- Updated a few project dependencies and the code using said dependencies.
+
 ## Version 0.8.3
 - Add username to table cell where display name is in certain cases.
     - Specifically where the lowercased version of the display name is different from the username (CJK names).

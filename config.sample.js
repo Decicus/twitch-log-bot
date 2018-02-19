@@ -9,11 +9,11 @@ const config = {};
  */
 config.tmi = {
     options: {
-        debug: true
+        debug: true,
     },
     connection: {
         reconnect: true,
-        secure: true
+        secure: true,
     },
     identity: {
         username: 'decicus',
@@ -21,8 +21,8 @@ config.tmi = {
         // Here are at least two:
         // - https://decicus.github.io/twitch-chat-token/
         // - https://twitchapps.com/tmi/
-        password: 'oauth:KappaHey'
-    }
+        password: 'oauth:KappaHey',
+    },
 };
 
 /**
@@ -32,7 +32,7 @@ config.tmi = {
  */
 config.gcloud = {
     projectId: 'grape-spaceship-123',
-    keyFilename: '/path/to/key.json'
+    keyFilename: '/path/to/key.json',
 };
 
 /**
@@ -59,18 +59,18 @@ config.settings = {
         enabled: true,
         // The delay between channel join in MILLISECONDS
         // Be careful of not putting this _too low_ due to rate-limits on Twitch's servers.
-        delay: 1000
+        delay: 1000,
     },
     // Express-related settings
     express: {
         // Will not run the express/web server if this is set to 'false'
         enabled: false,
         // What port to run the express/web server on
-        port: 8000
+        port: 8000,
     },
     // Twitch API stuff.
     twitch: {
-        clientId: ''
+        clientId: '',
     },
 };
 
