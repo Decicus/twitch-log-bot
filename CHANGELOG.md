@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.9.1
+- Fix error logs being spammed with exceptions whenever a username that does not exist (banned/deactivated) was looked up.
+- Fix messages over 1500 bytes not being logged.
+- Updated dependencies.
+
 ## Version 0.9.0
 - Added support for bans and timeouts, with (timeout) lengths and timeout/ban reason.
 - Updated a few project dependencies and the code using said dependencies.
