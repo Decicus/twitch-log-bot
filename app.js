@@ -367,6 +367,7 @@ const handleMessage = (channel, user, message) => {
         .save({
             key: key,
             data: data,
+            excludeFromIndexes: ['message'],
         })
         .catch(console.error);
 };
