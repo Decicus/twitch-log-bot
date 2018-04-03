@@ -66,7 +66,7 @@ const getUser = (username, callback) => {
             return console.error(err);
         }
 
-        if (!body.users[0]) {
+        if (!body || !body.users || body.users.length === 0) {
             callback(false);
             return console.error(`User ${username} does not exist!`);
         }
