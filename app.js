@@ -658,6 +658,19 @@ if (settings.express.enabled) {
         }
     });
 
+    web.get('/api/status', (req, res) => {
+        const state = client.readyState();
+
+        // Set status code based on readyState status.
+        const status = (state === 'OPEN' || state === 'CONNECTING') ? 200 : 500;
+        res
+            .status(status)
+            .send({
+                success: status === 200,
+                state,
+            });
+    });
+
     web.get('/api/*', function(req, res) {
         res.send({
             success: false,
