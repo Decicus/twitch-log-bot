@@ -72,6 +72,11 @@ config.settings = {
     twitch: {
         clientId: '',
     },
+    /**
+     * Partial matches for blacklisting user agent.
+     * E.g. 'Discordbot' will match any user agent that contains 'Discordbot'.
+     */
+    userAgentBlacklist: ['Discordbot'],
 };
 
 module.exports = config;

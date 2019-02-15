@@ -532,6 +532,10 @@ if (settings.express.enabled) {
         });
     });
 
+    /**
+     * Blacklisted user agents.
+     */
+    const blacklistedUserAgents = config.settings.userAgentBlacklist || [];
     web.get('/api/messages', (req, res) => {
         let channel = (h.requestValue(req, 'channel') || '');
         let user = (h.requestValue(req, 'user') || '');
@@ -545,6 +549,26 @@ if (settings.express.enabled) {
         let max = (settings.queryLimit || 200);
         if (limit > max) {
             limit = max;
+        }
+
+        /**
+         * Allow blacklisting of user agents, such as "Discordbot", to prevent their embeds
+         * requesting messages.
+         */
+        const userAgent = req.get('User-Agent');
+        for (let i in blacklistedUserAgents) {
+            const blacklisted = blacklistedUserAgents[i];
+            if (userAgent.includes(blacklisted)) {
+                console.log(`Blacklisted user agent: ${userAgent} matching ${blacklisted}`);
+                res
+                    .status(403)
+                    .send({
+                        success: false,
+                        message: 'Your user agent has been blacklisted.',
+                    });
+
+                return;
+            }
         }
 
         if ((!channel || channel.length === 0) && (!user || user.length === 0)) {
