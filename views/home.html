@@ -123,6 +123,8 @@
             }
 
             updating = true;
+            $('#limit').attr('disabled', '1');
+            $('#offset').attr('disabled', '1');
 
             var limit = parseInt(value('#limit'));
             var offset = parseInt(value('#offset'));
@@ -212,6 +214,9 @@
                     error('An error occurred loading messages: <strong>' + errMsg + '</strong>');
                 },
                 complete: function() {
+                    $('#limit').removeAttr('disabled');
+                    $('#offset').removeAttr('disabled');
+
                     updating = false;
                     loading.remove();
                     refresh.removeClass('disabled');

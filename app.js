@@ -373,17 +373,25 @@ const handleMessage = (channel, user, message) => {
 };
 
 /**
+ * Defines subscription plans/tiers.
+ */
+const subTiers = {
+    '1000': 'Tier 1',
+    '2000': 'Tier 2',
+    '3000': 'Tier 3',
+};
+
+/**
  * Handles the different subscription events
  */
-const handleSubs = (channel, username, m, msg, userstate, methods) => {
+const handleSubs = (channel, username, m, msg, state, methods) => {
     channel = h.fmtChannel(channel);
 
     if (ignore[channel] && ignore[channel].indexOf(username) >= 0) {
         return;
     }
 
-    let ts = Date.now().toString();
-    msg = msg || '<No Message>';
+    const ts = Date.now().toString();
 
     getUser(username, (cachedUser) => {
         let user_id = null;
@@ -392,11 +400,37 @@ const handleSubs = (channel, username, m, msg, userstate, methods) => {
         }
 
         /**
-         * 'resub' event: This will be the amount of months the user has been subbed for (https://docs.tmijs.org/v1.2.1/Events.html#resub)
-         * 'subscription' event: This will be an object with the plan/method information (https://docs.tmijs.org/v1.2.1/Events.html#subscription)
+         * 'resub' event: This will be the amount of months the user has been subbed for
+         * https://github.com/tmijs/docs/blob/gh-pages/_posts/v1.4.2/2019-03-03-Events.md#resub
+         *
+         * 'subscription' event: This will be an object with the plan/method information
+         * https://github.com/tmijs/docs/blob/gh-pages/_posts/v1.4.2/2019-03-03-Events.md#subscription
          */
-        const prefix = typeof m === 'number' ? `Resub (${m} months) - Plan: [${methods.plan}] ${methods.planName}` : `Subscription - Plan: [${m.plan}] ${m.planName}`;
+        const isNumber = typeof m === 'number';
 
+        /**
+         * Plan information will be part of `m` if it's a new subscription.
+         *
+         * Resubs pass another parameter `methods`,
+         * which is normally undefined for new subscriptions.
+         */
+        const {plan, planName} = (isNumber ? methods : m);
+
+        /**
+         * Tier 1/2/3 are predefined. If this changes or new tiers show up
+         * it should just fall back to whatever Twitch sends via TMI.
+         */
+        const tier = subTiers[plan] || plan;
+
+        const months = state['msg-param-cumulative-months'] || (isNumber ? m : 0);
+        const prefix = isNumber ?
+            `Resub (${months} months) - Plan: [${tier}] ${planName}` :
+            `Subscription - Plan: [${tier}] ${planName}`;
+
+        /**
+         * Check if a resubscription message is included.
+         */
+        const hasMessage = typeof msg === 'string';
         const data = {
             channel: channel,
             channel_id: cache.names[channel]._id,
@@ -405,7 +439,7 @@ const handleSubs = (channel, username, m, msg, userstate, methods) => {
             user: {
                 display_name: username,
             },
-            message: `${prefix} - Message: ${msg}`,
+            message: prefix + (hasMessage ? `- Message: ${msg}` : ''),
             timestamp: ts,
         };
 
@@ -424,15 +458,15 @@ const handleSubs = (channel, username, m, msg, userstate, methods) => {
  *
  * @param {String} channel Channel name where the ban/timeout occurred.
  * @param {String} username Username of user that got banned/timed out.
- * @param {String|null} reason Reason why username was banned/timed out.
- * @param {Number|undefined} length Length of time someone got timed out (in seconds).
+ * @param {null} reason Historically this contained the ban/timeout reason, but Twitch no longer sends this via TMI.
+ * @param {Number|Object|undefined} length Length of time someone got timed out (in seconds).
  */
-const handleTimeoutAndBan = (channel, username, reason, length) => {
+const handleTimeoutAndBan = (channel, username, timeout, length) => {
     channel = h.fmtChannel(channel);
 
-    const type = length === undefined ? 'BAN' : 'TIMEOUT';
-    const suffix = length === undefined ? '' : ` - Length (seconds): ${length}`;
-    reason = reason || '<No timeout/ban reason given>';
+    const isBan = length === undefined || typeof length === 'object';
+    const type = isBan ? 'BAN' : 'TIMEOUT';
+    const suffix = isBan ? '' : ` - Length (seconds): ${length}`;
 
     const ts = Date.now().toString();
     getUser(username, (cachedUser) => {
@@ -449,7 +483,7 @@ const handleTimeoutAndBan = (channel, username, reason, length) => {
             user: {
                 display_name: username,
             },
-            message: `* ${type} - Reason: ${reason + suffix}`,
+            message: `* ${type + suffix}`,
             timestamp: ts,
         };
 
@@ -463,6 +497,9 @@ const handleTimeoutAndBan = (channel, username, reason, length) => {
     });
 };
 
+/**
+ * Register all chat events with prepared handlers.
+ */
 client.on('action', handleMessage);
 client.on('ban', handleTimeoutAndBan);
 client.on('chat', handleMessage);

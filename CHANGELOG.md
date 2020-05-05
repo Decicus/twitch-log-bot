@@ -1,5 +1,18 @@
 # Changelog
 
+## Version 0.10.1
+
+- **Subscriptions**: Resubs with no message will no longer include ` - Message: <No Message>` at the end and simply omit it.
+- **Subscriptions**: Months should be reported correctly when resubscribing.
+    - Resub messages only care about total months subscribed, not "streak months".
+- **Subscriptions**: Tiers will now display correctly as `Tier 1/Tier 2/Tier 3` instead of `1000/2000/3000`
+    - This only applies to new messages. Older messages already logged will still include `1000/2000/3000`.
+    - Twitch Prime subscriptions will still show as `Prime`, unless Twitch changes that in the future.
+- **Timeouts / Bans**: Reasons will be omitted from new messages, as timeout/ban reasons are no longer sent via chat.
+    - This does not affect timeout lengths, they will still be included as-is.
+    - Future bans will now only show up as `* BAN`.
+- **Web UI**: The `limit` and `offset` fields will be disabled while retrieving messages, preventing input mid-retrieval.
+
 ## Version 0.10.0
 
 - Added `userAgentBlacklist` option in the configuration file.
