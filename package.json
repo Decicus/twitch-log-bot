@@ -9,7 +9,7 @@
   "author": "Alex Thomassen",
   "license": "MIT",
   "dependencies": {
-    "@google-cloud/datastore": "^2.0.0",
+    "@google-cloud/datastore": "^6.1.1",
     "express": "^4.17.1",
     "request": "^2.88.2",
     "swig": "^1.4.2",
