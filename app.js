@@ -3,13 +3,14 @@ const config = require('./config');
 const h = require('./helpers');
 const pkg = require('./package');
 const settings = config.settings;
-const datastore = require('@google-cloud/datastore')(config.gcloud);
+const { Datastore } = require('@google-cloud/datastore');
 const express = require('express');
 const fs = require('fs');
 const request = require('request');
 const swig = require('swig');
 const tmi = require('tmi.js');
 
+const datastore = new Datastore(config.gcloud);
 const client = new tmi.client(config.tmi);
 const web = express();
 const twitchSettings = config.settings.twitch || {};
