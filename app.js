@@ -15,13 +15,8 @@ const client = new tmi.client(config.tmi);
 const web = express();
 const twitchSettings = config.settings.twitch || {};
 const baseApi = request.defaults({
-    baseUrl: 'https://api.twitch.tv/kraken',
+    baseUrl: 'https://twitch-api-proxy.cactus.workers.dev',
     method: 'GET',
-    headers: {
-        'Accept': 'application/vnd.twitchtv.v5+json',
-        'Authorization': 'OAuth ' + (config.tmi.identity.password || '').replace('oauth:', ''),
-        'Client-ID': twitchSettings.clientId || '',
-    },
     json: true,
 });
 
@@ -60,20 +55,22 @@ const getUser = (username, callback) => {
     }
 
     baseApi({
-        'url': '/users?login=' + username,
+        'url': '/direct/users?login=' + username,
     }, (err, response, body) => {
         if (err) {
             callback(false);
             return console.error(err);
         }
 
-        if (!body || !body.users || body.users.length === 0) {
+        if (!body || !body.data || body.data.length === 0) {
             callback(false);
             return console.error(`User ${username} does not exist!`);
         }
 
-        const user = body.users[0];
-        const {_id, display_name, name} = user;
+        const user = body.data[0];
+        const {id, display_name, login} = user;
+        const name = login;
+        const _id = id;
 
         const userToCache = {
             display_name,
